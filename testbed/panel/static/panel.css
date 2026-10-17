@@ -1,0 +1,363 @@
+/*
+ * Control panel styling.
+ *
+ * The only load-bearing rule in this file is the tag palette. The four
+ * status tags must stay distinguishable without reading the text, and
+ * the two "no tag" cases -- an unreadable report and an arm the report
+ * left untagged -- must look nothing like a verdict, because they are
+ * not one.
+ */
+
+:root {
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --surface-alt: #eef1f5;
+  --border: #d4d9e0;
+  --text: #1a1d21;
+  --text-dim: #5a6472;
+  --accent: #26457a;
+
+  --verified-fg: #0d5c36;
+  --verified-bg: #d6f0e1;
+  --pending-fg: #8a4b00;
+  --pending-bg: #fdeacd;
+  --unverified-fg: #333f4f;
+  --unverified-bg: #dfe4ea;
+  --bug-fg: #8c1c14;
+  --bug-bg: #fbd9d6;
+  --notag-fg: #6b1f1a;
+  --notag-bg: #f3dcda;
+  --pass: #0d5c36;
+  --fail: #8c1c14;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #14171c;
+    --surface: #1c2027;
+    --surface-alt: #242932;
+    --border: #353c47;
+    --text: #e7eaee;
+    --text-dim: #9aa5b4;
+    --accent: #9cc0ff;
+
+    --verified-fg: #86e0b0;
+    --verified-bg: #163a28;
+    --pending-fg: #f3c377;
+    --pending-bg: #3d2f14;
+    --unverified-fg: #c3ccd8;
+    --unverified-bg: #2c333d;
+    --bug-fg: #ffa9a2;
+    --bug-bg: #46201d;
+    --notag-fg: #ffb3ac;
+    --notag-bg: #3f1f1c;
+    --pass: #86e0b0;
+    --fail: #ffa9a2;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 0 0 3rem;
+  background: var(--bg);
+  color: var(--text);
+  font: 14px/1.5 ui-sans-serif, system-ui, "Segoe UI", Roboto, sans-serif;
+}
+
+code, .mono, table.grid td.mono {
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  font-size: 0.92em;
+}
+
+/* ---- header ------------------------------------------------------- */
+
+.top {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.top h1 {
+  margin: 0;
+  font-size: 1.15rem;
+  letter-spacing: 0.01em;
+}
+
+.sub {
+  margin: 0.2rem 0 0;
+  color: var(--text-dim);
+  font-size: 0.82rem;
+}
+
+.top-actions { text-align: right; }
+
+button {
+  font: inherit;
+  color: var(--text);
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.35rem 0.8rem;
+  cursor: pointer;
+}
+
+button:hover { border-color: var(--accent); }
+
+/* ---- banner ------------------------------------------------------- */
+
+.banner {
+  margin: 1rem 1.5rem 0;
+  padding: 0.8rem 1rem;
+  border: 2px solid var(--pending-fg);
+  border-left-width: 8px;
+  border-radius: 6px;
+  background: var(--pending-bg);
+  color: var(--pending-fg);
+}
+
+.banner h2 {
+  margin: 0 0 0.4rem;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.banner p { margin: 0 0 0.5rem; }
+
+.banner ul {
+  margin: 0;
+  padding-left: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.banner li { display: flex; }
+
+.notices {
+  margin: 1rem 1.5rem 0;
+  padding: 0.6rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface-alt);
+  color: var(--text-dim);
+}
+
+.notices ul { margin: 0; padding-left: 1.2rem; }
+
+/* ---- tabs --------------------------------------------------------- */
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  padding: 1rem 1.5rem 0;
+}
+
+.tabs button[aria-selected="true"] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+@media (prefers-color-scheme: dark) {
+  .tabs button[aria-selected="true"] { color: #10141a; }
+}
+
+main { padding: 1rem 1.5rem 0; }
+
+/* ---- cards and tables --------------------------------------------- */
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem 1.1rem;
+  margin-bottom: 1rem;
+  overflow-x: auto;
+}
+
+.card > h2 {
+  margin: 0 0 0.2rem;
+  font-size: 1rem;
+}
+
+.card > h3 {
+  margin: 1rem 0 0.3rem;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-dim);
+}
+
+.card .hint {
+  margin: 0 0 0.7rem;
+  color: var(--text-dim);
+  font-size: 0.82rem;
+}
+
+table.grid {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.86rem;
+}
+
+table.grid th, table.grid td {
+  text-align: left;
+  padding: 0.4rem 0.6rem;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+
+table.grid th {
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+table.grid tbody tr:hover { background: var(--surface-alt); }
+table.grid td.num { text-align: right; white-space: nowrap; }
+table.grid tr.changed td { background: var(--pending-bg); }
+table.grid tr.absent td { opacity: 0.75; font-style: italic; }
+
+.row-link { cursor: pointer; }
+
+/* ---- tags --------------------------------------------------------- */
+
+.tag {
+  display: inline-block;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  border: 1px solid transparent;
+}
+
+.tag-verified { color: var(--verified-fg); background: var(--verified-bg); }
+.tag-pending  { color: var(--pending-fg); background: var(--pending-bg); }
+.tag-unver    { color: var(--unverified-fg); background: var(--unverified-bg); }
+.tag-bug      { color: var(--bug-fg); background: var(--bug-bg); }
+
+/* Not a verdict. Hatched so it cannot be mistaken for one at a glance. */
+.tag-notag {
+  color: var(--notag-fg);
+  background: repeating-linear-gradient(
+    45deg,
+    var(--notag-bg), var(--notag-bg) 5px,
+    transparent 5px, transparent 10px
+  );
+  border-color: var(--notag-fg);
+  border-style: dashed;
+}
+
+/* A metric and its tag are one unit; they never wrap apart. */
+.metric {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  white-space: nowrap;
+}
+
+.metric .value { font-family: ui-monospace, Consolas, monospace; }
+.metric .value.diverged { color: var(--bug-fg); font-weight: 600; }
+.metric .value.absent { color: var(--text-dim); }
+
+.pass { color: var(--pass); font-weight: 700; }
+.fail { color: var(--fail); font-weight: 700; }
+
+.notes { color: var(--text-dim); font-size: 0.82rem; }
+.errors { color: var(--bug-fg); font-size: 0.82rem; }
+.errors ul, .notes ul { margin: 0.2rem 0 0; padding-left: 1.1rem; }
+
+.pill-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 0.7rem;
+}
+
+label.pick {
+  display: inline-flex;
+  gap: 0.35rem;
+  align-items: center;
+  padding: 0.25rem 0.55rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface-alt);
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+select {
+  font: inherit;
+  color: var(--text);
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.3rem 0.5rem;
+  max-width: 100%;
+}
+
+pre.block {
+  margin: 0;
+  padding: 0.6rem 0.8rem;
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow-x: auto;
+  font-size: 0.8rem;
+}
+
+ul.lines { margin: 0; padding-left: 1.1rem; }
+ul.lines li { font-family: ui-monospace, Consolas, monospace;
+              font-size: 0.82rem; }
+
+.empty { color: var(--text-dim); font-style: italic; }
+
+/* ---- sweep plot --------------------------------------------------- */
+
+.plot { width: 100%; height: auto; display: block; }
+.plot .axis { stroke: var(--border); stroke-width: 1; }
+.plot .grid-line { stroke: var(--border); stroke-dasharray: 2 3; }
+.plot .tick { fill: var(--text-dim); font-size: 10px; }
+.plot .axis-label { fill: var(--text-dim); font-size: 11px; }
+.plot .series { stroke: var(--accent); stroke-width: 1.5; fill: none; }
+
+/*
+ * The diverged band is physically separated from the plot area. A
+ * diverged point is not a tall point: it has no place on the axis at
+ * all, and pretending otherwise would flatten every finite point.
+ */
+.plot .diverged-band { fill: var(--bug-bg); opacity: 0.55; }
+.plot .diverged-edge { stroke: var(--bug-fg); stroke-dasharray: 4 3; }
+.plot .diverged-label { fill: var(--bug-fg); font-size: 10px;
+                        font-weight: 700; }
+.plot .pt-verified { fill: var(--verified-fg); }
+.plot .pt-pending  { fill: var(--pending-fg); }
+.plot .pt-unver    { fill: var(--unverified-fg); }
+.plot .pt-bug      { fill: var(--bug-fg); }
+.plot .pt-notag    { fill: none; stroke: var(--notag-fg); stroke-width: 2; }
+
+.foot {
+  margin: 2rem 1.5rem 0;
+  padding-top: 0.8rem;
+  border-top: 1px solid var(--border);
+  color: var(--text-dim);
+  font-size: 0.8rem;
+}
+
+.foot p { margin: 0; }

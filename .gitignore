@@ -1,0 +1,27 @@
+# Environments and caches
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.ipynb_checkpoints/
+
+# Run outputs, wherever they land. Audit packs are reproducible from
+# their config plus the pinned requirements, so they are regenerated
+# rather than versioned -- and their env.txt records absolute paths from
+# the machine that made them, which do not belong in a repository.
+# Unanchored, because the notebooks write runs/ beside themselves too.
+runs/
+
+# Model checkpoints: large, binary, and reproducible from a seed.
+*.pt
+*.pth
+
+# Built artifacts. The PDF is committed deliberately (see README); the
+# intermediate HTML and the headless-browser profile are not.
+book/build/
+
+# OS noise
+.DS_Store
+Thumbs.db

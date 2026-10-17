@@ -1,0 +1,47 @@
+# EXP-01 -- the single baseline experiment.
+#
+# Controls live here, never in the source. Override from the command line
+# with --set, or scan a range with --sweep.
+
+experiment = "exp01_baseline"
+seed = 20260101
+
+[dataset]
+name = "synthetic_linear"
+n_samples = 2000
+n_features = 8
+noise = 0.25
+
+[split]
+kind = "random"          # i.i.d. tabular data; see mlkit.splits
+test_size = 0.2
+
+[metric]
+primary = "rmse"
+secondary = ["mae", "r2", "smape"]
+
+# Acceptance thresholds, declared BEFORE the code ran. Editing one of these
+# after seeing a result is a bug, and a serious one (VERIFICATION.md §2.6).
+[gates]
+coef_recovery_tol = 0.1      # closed form vs the generator's true weights
+gd_agreement_tol = 1e-6      # float64 descent vs closed form [MML p.481]
+sklearn_agreement_tol = 1e-6 # library reference vs closed form
+torch_agreement_tol = 5e-2   # float32 mini-batch SGD, looser by arithmetic
+
+[report]
+bootstrap = 1000
+ci = 0.95
+
+[arms.normal_equations]
+
+[arms.gradient_descent]
+lr = 0.05
+iters = 2000
+momentum = 0.0
+
+[arms.sklearn_linear]
+
+[arms.torch_sgd]
+lr = 0.05
+epochs = 200
+batch_size = 32

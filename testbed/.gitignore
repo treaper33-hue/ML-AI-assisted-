@@ -1,0 +1,12 @@
+# Environment and caches -- never committed.
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Run outputs. Audit packs are reproducible from config.json plus the
+# pinned requirements, so they are regenerated rather than versioned.
+# Commit a specific run deliberately with: git add -f runs/<run-id>
+runs/

@@ -1,0 +1,65 @@
+# Tooling configuration for the code contract.
+#
+# Rules and anchors are listed in SOURCE_LEDGER.md §5. The settings here
+# are the machine-checkable half of the Google Python Style Guide; the
+# rest (docstring content, function length, naming judgement) is checked
+# in review.
+
+[tool.ruff]
+line-length = 80                  # [GPSG p.20 §3.2]
+indent-width = 4                  # [GPSG p.23 §3.4]
+target-version = "py311"
+extend-exclude = [".venv", "runs"]
+
+[tool.ruff.lint]
+select = [
+    "E",      # pycodestyle errors
+    "W",      # pycodestyle warnings
+    "F",      # pyflakes
+    "I",      # import sorting            [GPSG p.40 §3.13]
+    "D",      # docstrings                [GPSG p.27 §3.8]
+    "N",      # naming                    [GPSG p.43 §3.16]
+    "ANN",    # type annotations          [GPSG p.46 §3.19]
+    "B",      # bugbear
+    "TD",     # TODO format               [GPSG p.39 §3.12]
+]
+ignore = [
+    "ANN401",  # Any is allowed in config plumbing
+    "D203",    # incompatible with D211
+    "D213",    # incompatible with D212
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Tests document themselves through their names and docstrings; full
+# annotations there would cost more than they return.
+"tests/*" = ["ANN", "D103"]
+
+[tool.ruff.lint.isort]
+# [GPSG p.40 §3.13]: "Imports should be on separate lines; there are
+# exceptions for typing and collections.abc imports." Ruff's default
+# combines names onto one line, which contradicts the guide this project
+# is held to, so the guide wins.
+force-single-line = true
+single-line-exclusions = ["typing", "collections.abc"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"             # [GPSG p.29 §3.8.3]
+
+[tool.ruff.format]
+quote-style = "single"
+indent-style = "space"
+
+[tool.mypy]
+python_version = "3.11"
+# `panel` is in the contract too: it is the one place a number is shown
+# to somebody who did not run the experiment, so it gets the same
+# checking as the code that produced the number.
+files = ["mlkit", "panel"]
+disallow_untyped_defs = true      # [GPSG p.19 §2.21]
+warn_unused_ignores = true
+warn_return_any = true
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!--
+    Four bars in the four status colours, in the order the legend lists
+    them: verified, pending revision, unverified, bug. Declared in
+    index.html so the browser stops asking for /favicon.ico, which was
+    logging a 404 on every page load and making the request log look
+    like something was wrong.
+  -->
+  <rect width="32" height="32" rx="6" fill="#26457a"/>
+  <rect x="6"  y="18" width="4" height="8"  rx="1" fill="#86e0b0"/>
+  <rect x="12" y="13" width="4" height="13" rx="1" fill="#f3c377"/>
+  <rect x="18" y="16" width="4" height="10" rx="1" fill="#c3ccd8"/>
+  <rect x="24" y="9"  width="4" height="17" rx="1" fill="#ffa9a2"/>
+</svg>

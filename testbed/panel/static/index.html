@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ML mastery control panel</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="panel.css">
+</head>
+<body>
+
+<header class="top">
+  <div class="top-title">
+    <h1>ML mastery &mdash; control panel</h1>
+    <p class="sub" id="source-line">reading&hellip;</p>
+  </div>
+  <div class="top-actions">
+    <button type="button" id="refresh">Refresh</button>
+    <p class="sub" id="generated-line"></p>
+  </div>
+</header>
+
+<!--
+  The banner is a structural element, not a notification: an unverified
+  result must stay in view rather than being filtered out of it. It is
+  emptied when every run is VERIFIED and never collapsed by the reader.
+-->
+<section id="banner" class="banner" hidden aria-live="polite"></section>
+
+<section id="notices" class="notices" hidden></section>
+
+<nav class="tabs" id="tabs" role="tablist">
+  <button type="button" role="tab" data-tab="board">Status board</button>
+  <button type="button" role="tab" data-tab="run">Run detail</button>
+  <button type="button" role="tab" data-tab="compare">Compare</button>
+  <button type="button" role="tab" data-tab="sweep">Sweeps</button>
+  <button type="button" role="tab" data-tab="legend">Tags</button>
+</nav>
+
+<main>
+  <section id="panel-board" class="tab-panel" role="tabpanel"></section>
+  <section id="panel-run" class="tab-panel" role="tabpanel" hidden></section>
+  <section id="panel-compare" class="tab-panel" role="tabpanel" hidden></section>
+  <section id="panel-sweep" class="tab-panel" role="tabpanel" hidden></section>
+  <section id="panel-legend" class="tab-panel" role="tabpanel" hidden></section>
+</main>
+
+<footer class="foot">
+  <p>
+    Read-only viewer over <code>runs/</code>. Nothing here edits a run, a
+    threshold or a status &mdash; editing a threshold after seeing a
+    result is the bug this program exists to prevent
+    (VERIFICATION.md &sect;2.6).
+  </p>
+</footer>
+
+<script src="panel.js"></script>
+</body>
+</html>
