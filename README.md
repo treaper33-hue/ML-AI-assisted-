@@ -23,6 +23,34 @@ Then read [ML_LEARNING_PROGRAM.md](ML_LEARNING_PROGRAM.md) from Part 0.
 | **[VERIFICATION.md](VERIFICATION.md)** | The review protocol, status board and bug log | you, as Auditor |
 | **[testbed/](testbed/)** | The runnable environment: one loader, one scorer, one set of splitters, one baseline experiment | you, as Interface |
 
+## Compilers and Triton
+
+**[compilers_and_triton/](compilers_and_triton/)** — eight stages from
+"what is a token" to a tensor compiler that emits fused Triton
+kernels, with a notebook each.
+
+| | Track A, compilers (CPU) | Track B, Triton (GPU) |
+|---|---|---|
+| Fundamental | A1 lexer and Pratt parser · A2 three-address IR | B1 `program_id`, blocks, masks |
+| Intermediate | A3 folding, propagation, CSE, DCE to a fixpoint | B2 reductions and stable softmax |
+| Advanced | A4 algorithm vs schedule, cost model, autotuning | B3 tiling, register accumulation, grouped ordering |
+| Capstone | **One IR, two backends** — A1–A3 reused unchanged to emit fused NumPy *and* fused Triton | |
+
+```bash
+cd compilers_and_triton && python run_all.py
+```
+
+On a CPU-only machine: **5 verified, 3 unverified, 0 failed** in about
+a second. The three unverified are the GPU kernels, whose NumPy
+references are still checked — a skip is not a pass. For those, open
+the Colab notebooks and pick a T4.
+
+The capstone is why the two tracks are one section: a tensor compiler
+*is* a compiler, and the proof is that the front end and the four
+passes needed no changes to go from scalar arithmetic to fused
+kernels. `compilers_and_triton/README.md` has the full ladder, the
+notebook links, and what each stage's gates check.
+
 ## Where it comes from
 
 | Source | Role in the program |
