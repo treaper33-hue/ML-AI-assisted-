@@ -16,7 +16,7 @@ are still checked, so nothing is silently skipped.
 
 On a GPU: **8 verified, 0 unverified, 0 failed**. That run is written
 up in **[GPU_VERIFICATION.md](GPU_VERIFICATION.md)**, measured on an
-RTX 5070, and it is worth reading before the code: it found five
+RTX 5070, and it is worth reading before the code: it found eight
 defects, four of them in code that had passed every CPU check. Two are
 worth knowing about even if you never run the kernels.
 
@@ -155,13 +155,34 @@ now does both edits and says why there are two.
 
 ### Running the GPU stages
 
-Triton's official wheels are Linux-only, and installing a Windows port
-beside a working PyTorch risks breaking it. The reliable route is
-Colab, where Triton ships with PyTorch:
+**Colab** is the zero-setup route — Triton ships with its PyTorch:
 
 1. Open one of the three **GPU** notebooks above
 2. **Runtime → Change runtime type → T4 GPU**
 3. Run the cells
+
+**On Linux**, `pip install triton` and the modules need nothing
+special.
+
+**On Windows**, Triton has no official wheel, and installing the
+community port beside a working CUDA PyTorch is a real risk to the
+PyTorch. [`gpu_setup.py`](gpu_setup.py) avoids that: it installs
+`triton-windows` to a prefix of its own with `pip --target`, leaves
+your `site-packages` untouched, and injects the prefix for the
+duration of one process.
+
+```bash
+python gpu_setup.py --install      # ~158 MB, to ~/.ml-mastery-gpu
+python gpu_setup.py --check        # compiles and launches one kernel
+python gpu_setup.py --run run_all.py
+python gpu_setup.py --remove       # puts it back exactly as it was
+```
+
+It needs MSVC (`Desktop development with C++` from the Visual Studio
+Build Tools) and finds it itself through `vswhere.exe`. It does **not**
+need the CUDA Toolkit, despite what `triton-windows` warns — the
+reason, and the `CUDA_PATH` line that saves you the download, are in
+[GPU_VERIFICATION.md](GPU_VERIFICATION.md).
 
 Each module reports its environment honestly at the top, and a kernel
 that could not run is reported as `SKIP`. A skip is not a pass.

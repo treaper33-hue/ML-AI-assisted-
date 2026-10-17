@@ -7,9 +7,10 @@ their NumPy references.
 
 **Result: 8 verified, 0 unverified, 0 failed** in 10.0 s.
 
-The run found **five defects**, four of them in code that had passed
-every CPU check. That ratio is the argument for doing this: a
-reference implementation agreeing with itself proves very little.
+The run found **eight defects**, four of them in code that had passed
+every CPU check and three in the installer written to reproduce the
+run. That ratio is the argument for doing this: a reference
+implementation agreeing with itself proves very little.
 
 ---
 
@@ -49,9 +50,19 @@ stacked distributions), and nothing was written into it here: its
 `site-packages` is untouched, and Triton reaches Python through
 `PYTHONPATH` for the duration of a single process.
 
-A launcher supplies the three things a Triton kernel compile needs on
-Windows — MSVC on `PATH` via `vcvars64.bat`, the isolated package
-directory on `PYTHONPATH`, and `CUDA_PATH`.
+This is packaged as **[`gpu_setup.py`](gpu_setup.py)**, so it is
+reproducible rather than described:
+
+```bash
+python gpu_setup.py --install      # ~158 MB, to ~/.ml-mastery-gpu
+python gpu_setup.py --check        # compiles and launches one kernel
+python gpu_setup.py --run run_all.py
+python gpu_setup.py --remove
+```
+
+It supplies the three things a Triton kernel compile needs on Windows
+— MSVC on `PATH` via `vcvars64.bat`, located through `vswhere.exe`;
+the isolated package directory on `PYTHONPATH`; and `CUDA_PATH`.
 
 **`CUDA_PATH` is not optional, and the reason is worth recording.**
 Without it the link fails:
@@ -67,9 +78,9 @@ puts only `lib/` on the link path, not `lib/x64/`. Pointing
 `CUDA_PATH` at the bundled `triton/backends/nvidia` directory makes
 Triton add the right path itself. No toolkit download, no file copied.
 
-This is reproducible but **not committed**, because it hard-codes
-absolute paths from one machine. It is three environment variables and
-a call to `vcvars64.bat`.
+Writing that script turned up three more defects, listed as 6, 7 and 8
+below. Two of them were in the script itself and one was a repeat, by
+me, of defect 4.
 
 ---
 
@@ -93,6 +104,9 @@ work and is the obvious next step for this section.
 ---
 
 ## Defects found
+
+The first five came from running the kernels; 6 to 8 came from
+packaging the setup so the run can be repeated.
 
 ### 1. B3's gate measured the wrong thing — the gate was wrong, not the kernel
 
@@ -207,6 +221,47 @@ Required: 131072, Hardware limit: 101376
 it is A4's feasibility constraint arriving as a real error, and it is
 worth more to a reader than a table with one row missing.
 
+### 6. `cmd /c "... && set"` cannot survive the quoting layers
+
+Capturing the MSVC environment means running `vcvars64.bat` and asking
+the shell what changed, because there is no supported way to read it.
+Passing that as `['cmd', '/c', f'call "{vcvars}" && set']` failed with
+"The system cannot find the path specified": the path contains spaces
+and parentheses, and both `subprocess`'s `list2cmdline` and `cmd`'s own
+parser get a turn at the quoting.
+
+**Fixed** by writing a two-line batch file to a temporary directory and
+running that, which removes every quoting layer at once.
+
+### 7. The default prefix landed inside an application's private cache
+
+`LOCALAPPDATA` looked like the obvious place for a 158 MB binary
+install. It is not: a packaged application gets a **redirected**
+`LOCALAPPDATA`, so running the installer from inside one put the files
+in `AppData\Packages\...\LocalCache`, where the user's own terminal
+would never find them and a cache cleanup could delete them without
+warning.
+
+**Fixed** by defaulting to `~/.ml-mastery-gpu`, which is predictable
+on every platform and is not redirected. The misplaced copy was
+removed.
+
+### 8. The installer's own probe repeated defect 4
+
+The post-install check ran its test kernel with `python -c`, and got:
+
+```
+ValueError: @jit functions should be defined in a Python file
+```
+
+The same defect as 4, in new code, written after diagnosing it — code
+passed as `-c` has no file for `inspect.getsourcelines` to read, so
+`@triton.jit` refuses it. Knowing the cause did not stop me
+reintroducing it, which is the argument for a check that runs the
+thing rather than a reviewer who remembers.
+
+**Fixed** by writing the probe to a temporary file.
+
 ---
 
 ## A4's cost model, marked against the clock
@@ -275,4 +330,16 @@ python notebooks/validate_notebooks.py
 Both report the GPU in their banners and verify the kernels. Without
 a GPU both still pass, with the three kernel stages reported as
 `UNVERIFIED` and their references checked — confirmed unchanged after
-all five fixes above.
+all eight fixes above.
+
+On Windows, `gpu_setup.py --run` supplies the environment:
+
+```bash
+python gpu_setup.py --install
+python gpu_setup.py --run run_all.py
+python gpu_setup.py --run notebooks/validate_notebooks.py
+```
+
+Measured here after packaging: **8 verified** through `--run`, 8
+notebooks executing end to end, and **5 verified / 3 unverified** from
+plain `python run_all.py` in the same environment.
