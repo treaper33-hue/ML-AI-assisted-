@@ -70,39 +70,32 @@ reproduce on this machine; for a clean-clone guarantee, boot the `.venv` mode.
 
 ---
 
-## Putting this on GitHub
+## This repository
 
-This folder is its own git repository. It deliberately does **not**
-include the surrounding `30u30` clone, whose content is licensed
-CC BY-NC-ND — this work only references those papers, it does not
-redistribute them. Keep the two separate.
+Live at **<https://github.com/treaper33-hue/ml-mastery>** (public).
 
-Create an **empty, private** repository on GitHub (no README, no
-.gitignore — this folder already has both), then:
+It deliberately does **not** include the surrounding `30u30` clone it
+was written beside, whose content is licensed CC BY-NC-ND — this work
+references those papers, it does not redistribute them.
 
-```bash
-cd ml-mastery
-git remote add origin https://github.com/<you>/<repo>.git
-git push -u origin main
+### Open any notebook in Colab
+
+Every notebook carries an **Open in Colab** badge at the top, and the
+URLs work with no sign-in:
+
+```
+https://colab.research.google.com/github/treaper33-hue/ml-mastery/blob/main/notebooks/part1_mathematical_engine.ipynb
 ```
 
-Then point the Colab links at it, once:
+Swap the filename for any of the nine — `part1`–`part4` for the
+exercises, `project1`–`project5` for the projects.
+
+If the repository is ever renamed or forked, one command rewrites all
+nine badges and both READMEs:
 
 ```bash
-python notebooks/set_colab_links.py <you>/<repo>
-git commit -am "Add Colab badges" && git push
+python notebooks/set_colab_links.py <owner>/<repo>
 ```
-
-That adds an **Open in Colab** badge to all nine notebooks and fills in
-the URLs in both READMEs. `--remove` strips them again, and re-running
-it with a different slug updates them, so renaming the repository is one
-command.
-
-### Opening a private repo in Colab
-
-Colab reads private repositories once you allow it: **File → Open
-notebook → GitHub**, tick **Include private repos**, and authorise. The
-badge URLs then work exactly as they would for a public repo.
 
 ### What is not committed
 
@@ -111,3 +104,9 @@ reproducible from their config, and their `env.txt` records absolute
 paths from the machine that produced them. Also excluded: virtual
 environments, caches, `*.pt` checkpoints, and `book/build/`. The PDF
 itself *is* committed, because it is the deliverable.
+
+### Licence
+
+No licence file is included, which under GitHub's terms means all
+rights are reserved: others may view and fork within GitHub, but have
+no licence to reuse the work. Add one if you want different terms.
