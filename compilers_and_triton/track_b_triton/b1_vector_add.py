@@ -168,7 +168,8 @@ def main() -> int:
     print('    kernel handles a size that is not a multiple of the block.')
     print('  * Vector add is memory-bound: it reads 2N and writes N, and')
     print('    does one flop per element. No kernel can beat bandwidth,')
-    print('    which is why fusion (B4) matters more than arithmetic.')
+    print('    which is why fusion (the capstone) matters more than')
+    print('    arithmetic.')
     return code
 
 

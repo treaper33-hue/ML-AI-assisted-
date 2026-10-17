@@ -32,6 +32,7 @@ import argparse
 import contextlib
 import io
 import json
+import linecache
 import pathlib
 import sys
 import time
@@ -80,8 +81,7 @@ def check_notebook(path: pathlib.Path) -> Tuple[List[str], bool]:
         output = io.StringIO()
         try:
             with contextlib.redirect_stdout(output):
-                exec(compile(cells[0], f'{path.name}#setup', 'exec'),
-                     namespace)
+                exec_cell(cells[0], namespace, path.name, 0)
         except Exception as error:                      # noqa: BLE001
             messages.append(f'setup raised {type(error).__name__}: {error}')
             return messages, False
@@ -135,7 +135,19 @@ def check_notebook(path: pathlib.Path) -> Tuple[List[str], bool]:
 
 
 def exec_cell(source: str, namespace: Dict, name: str, index: int):
-    """Executes one cell's source in a namespace.
+    """Executes one cell's source in a namespace, as IPython would.
+
+    The `linecache` registration is not decoration. `@triton.jit` reads
+    its function's source with `inspect.getsourcelines`, which consults
+    `linecache`, and raises "@jit functions should be defined in a
+    Python file" when it cannot. Cell code lives in no file, so IPython
+    registers each cell under its pseudo-filename and that is why
+    Triton works in Colab at all.
+
+    A harness that skips this step fails on all three GPU notebooks
+    while the notebooks themselves are fine -- which is what happened
+    on the first GPU run here. Faithfulness to the real runtime is the
+    whole value of a validator.
 
     Args:
         source: The cell's code.
@@ -146,8 +158,10 @@ def exec_cell(source: str, namespace: Dict, name: str, index: int):
     Returns:
         None; cells are run for their effects.
     """
-    exec(compile(source, f'{name}#cell{index}', 'exec'),   # noqa: S102
-         namespace)
+    filename = f'{name}#cell{index}'
+    lines = source.splitlines(keepends=True)
+    linecache.cache[filename] = (len(source), None, lines, filename)
+    exec(compile(source, filename, 'exec'), namespace)     # noqa: S102
     return None
 
 

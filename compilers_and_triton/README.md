@@ -14,6 +14,21 @@ On a CPU-only machine: **5 verified, 3 unverified, 0 failed**. The
 three unverified are the GPU kernels — their reference implementations
 are still checked, so nothing is silently skipped.
 
+On a GPU: **8 verified, 0 unverified, 0 failed**. That run is written
+up in **[GPU_VERIFICATION.md](GPU_VERIFICATION.md)**, measured on an
+RTX 5070, and it is worth reading before the code: it found five
+defects, four of them in code that had passed every CPU check. Two are
+worth knowing about even if you never run the kernels.
+
+- B3's gate measured elementwise relative error on a matrix product,
+  which is APE, which is unbounded at zeros. The gate failed
+  `torch.matmul` at 6.2e-02. The kernel was fine; the threshold was
+  written down before the problem was understood.
+- `tl.dot` rounds float32 inputs to **TF32** unless told otherwise, so
+  B3 returned float32 it had never computed — 7.7e-04 against 5.7e-07.
+  A float32 accumulator does not make a float32 matmul, because the
+  rounding happens before the multiply.
+
 ---
 
 ## Why the two tracks are one course
@@ -79,7 +94,16 @@ describing, because they encode the lessons:
 - **A4** checks the cost model reproduces three facts a performance
   engineer would know independently: tiling beats the naive loop,
   square tiles beat thin ones, and k innermost beats k outermost. A
-  model that gets those wrong is not worth searching with.
+  model that gets those wrong is not worth searching with. All three
+  survived measurement on hardware; the model's *ranking* scored
+  Spearman **+0.810** against the clock, and taking its top pick costs
+  1.19x the best measured time, because it has no occupancy term.
+- **B3** measures what TF32 costs and what it buys — 1,347x less
+  accurate, 1.7x faster — and gates both halves of that claim.
+- **The metric is chosen per operation, not once.** B1 and B2 use
+  elementwise relative error; B3 uses the normwise measure, because
+  its output crosses zero. `runtime.normwise_error` carries the
+  argument.
 - **B2** checks the naive softmax *does* produce NaN, so the lesson is
   demonstrated rather than claimed.
 - **The capstone** checks the emitted Triton loads each input exactly

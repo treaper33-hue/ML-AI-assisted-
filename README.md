@@ -45,6 +45,15 @@ a second. The three unverified are the GPU kernels, whose NumPy
 references are still checked — a skip is not a pass. For those, open
 the Colab notebooks and pick a T4.
 
+On a GPU: **8 verified, 0 unverified, 0 failed**, measured on an RTX
+5070 and written up in
+**[compilers_and_triton/GPU_VERIFICATION.md](compilers_and_triton/GPU_VERIFICATION.md)**.
+That run found five defects in code that had passed every CPU check,
+including a gate that rejected `torch.matmul` and a "float32" kernel
+that was quietly multiplying in TF32. It is the clearest example in
+this repository of why a reference implementation agreeing with itself
+proves very little.
+
 The capstone is why the two tracks are one section: a tensor compiler
 *is* a compiler, and the proof is that the front end and the four
 passes needed no changes to go from scalar arithmetic to fused

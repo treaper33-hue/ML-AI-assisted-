@@ -560,25 +560,52 @@ SPECS: List[Dict] = [
              "    else:\n"
              "        print(f'{m:>4}x{k:<4} @ {k:>4}x{n:<4} reference '\n"
              "              f'only (no GPU here)')"),
-            ('Try it yourself',
-             'Tune it against the clock instead of against A4\'s model. '
-             'This is\n`triton.autotune` by hand, and the ranking will '
-             'not match the model\nexactly — the model does not know '
-             'about tensor-core shapes or occupancy.',
+            ('Try it yourself: tune against the clock, not the model',
+             'This is `triton.autotune` by hand, and it is where A4 gets '
+             'marked.\nWatch for two things.\n\n'
+             'First, the ranking. A4 predicted square tiles and a large '
+             '`BLOCK_M`\nwould win, and the clock broadly agrees — but '
+             'not in the same order,\nbecause the model knows nothing '
+             'about tensor-core shapes, occupancy or\npipelining.\n\n'
+             'Second, `OutOfResources`. A4 modelled a 128 KB fast-memory '
+             'budget, and\nthe GPU you are on may have less: a 128x128 '
+             'tile with `BLOCK_K=64` wants\n128 KB of shared memory, and '
+             'an RTX 5070 offers 99 KB. The feasibility\nconstraint in '
+             'A4\'s `search_space` was not a modelling convenience. It '
+             'is\nthis error, predicted.',
              "if CAN_RUN_KERNELS:\n"
              "    import torch\n"
              "    import triton\n"
+             "    from triton.runtime.errors import OutOfResources\n"
+             "\n"
              "    a = torch.randn(1024, 1024, device='cuda')\n"
              "    b = torch.randn(1024, 1024, device='cuda')\n"
+             "    limit = torch.cuda.get_device_properties(\n"
+             "        0).shared_memory_per_block_optin\n"
+             "    print(f'shared memory per block here: "
+             "{limit / 1024:.0f} KB')\n"
+             "    print(f\"A4's assumed budget:          \"\n"
+             "          f'{128 * 1024 / 1024:.0f} KB\\n')\n"
+             "\n"
+             "    flops = 2 * 1024 ** 3\n"
              "    for bm, bn, bk in ((32, 32, 32), (64, 64, 32),\n"
-             "                       (128, 128, 32), (128, 128, 64)):\n"
-             "        ms = triton.testing.do_bench(\n"
-             "            lambda: matmul(a, b, bm, bn, bk))\n"
+             "                       (128, 64, 32), (128, 128, 32),\n"
+             "                       (128, 128, 64), (256, 256, 64)):\n"
+             "        want = (bm * bk + bk * bn) * 4 * 2\n"
+             "        try:\n"
+             "            ms = triton.testing.do_bench(\n"
+             "                lambda m=bm, n=bn, k=bk: matmul(a, b, m, n, k))\n"
+             "        except OutOfResources:\n"
+             "            print(f'{bm:>4}x{bn:<4} k={bk:<4} does not fit: '\n"
+             "                  f'wants ~{want / 1024:.0f} KB of "
+             "{limit / 1024:.0f} KB')\n"
+             "            continue\n"
              "        print(f'{bm:>4}x{bn:<4} k={bk:<4} {ms:7.3f} ms   '\n"
-             "              f'{2 * 1024 ** 3 / (ms * 1e-3) / 1e12:5.2f} "
-             "TFLOP/s')\n"
+             "              f'{flops / (ms * 1e-3) / 1e12:5.2f} TFLOP/s')\n"
+             "\n"
              "    ms = triton.testing.do_bench(lambda: a @ b)\n"
-             "    print(f'torch.matmul       {ms:7.3f} ms')\n"
+             "    print(f'\\ntorch.matmul        {ms:7.3f} ms   '\n"
+             "          f'{flops / (ms * 1e-3) / 1e12:5.2f} TFLOP/s')\n"
              "else:\n"
              "    print('needs a GPU: Runtime -> Change runtime type -> "
              "T4 GPU')"),

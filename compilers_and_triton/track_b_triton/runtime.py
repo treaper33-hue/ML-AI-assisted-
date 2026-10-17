@@ -119,9 +119,41 @@ def relative_error(actual: np.ndarray, expected: np.ndarray) -> float:
     return float(np.max(np.abs(actual - expected) / scale))
 
 
+def normwise_error(actual: np.ndarray, expected: np.ndarray) -> float:
+    """Returns ||actual - expected|| / ||expected||, Frobenius norm.
+
+    `relative_error` above divides elementwise, which is the right
+    measure when every expected value is bounded away from zero -- a
+    softmax probability, a positive activation. It is the wrong measure
+    the moment the output straddles zero, because it is then APE, and
+    APE is unbounded at zeros: an absolute error of 1e-4 against an
+    entry that happens to be 1e-6 reads as 1e+02 and says nothing about
+    the computation.
+
+    A matrix product of random data straddles zero everywhere. This is
+    not a hypothetical: the elementwise measure reports 6.2e-02 for
+    `torch.matmul` on one of B3's own test shapes, so a gate built on
+    it rejects the reference implementation of the operation. Numerical
+    linear algebra uses the normwise measure for exactly this reason,
+    and so does B3.
+
+    Args:
+        actual: What the kernel produced.
+        expected: What the reference produced.
+
+    Returns:
+        The normwise relative error.
+    """
+    actual = np.asarray(actual, dtype=np.float64)
+    expected = np.asarray(expected, dtype=np.float64)
+    scale = float(np.linalg.norm(expected.reshape(-1)))
+    return float(np.linalg.norm((actual - expected).reshape(-1))
+                 / max(scale, 1e-300))
+
+
 def check(name: str, kernel: Callable[[], 'np.ndarray'],
           expected: np.ndarray, tolerance: float = 2e-2,
-          repeats: int = 20) -> Result:
+          repeats: int = 20, metric: str = 'elementwise') -> Result:
     """Runs a kernel, times it, and compares it with the reference.
 
     Args:
@@ -132,10 +164,18 @@ def check(name: str, kernel: Callable[[], 'np.ndarray'],
             loose because float32 accumulation over a reduction is
             genuinely imprecise; each module tightens it where it can.
         repeats: Timed iterations after a warm-up.
+        metric: 'elementwise' (the default) or 'normwise'. Choosing
+            this per operation rather than once for the whole suite is
+            deliberate -- see `normwise_error` for which is right when.
 
     Returns:
         The result record.
+
+    Raises:
+        ValueError: On an unknown metric name.
     """
+    if metric not in ('elementwise', 'normwise'):
+        raise ValueError(f'unknown metric {metric!r}')
     if not CAN_RUN_KERNELS:
         return Result(name, SKIP, 'no GPU or Triton in this runtime')
     try:
@@ -150,10 +190,14 @@ def check(name: str, kernel: Callable[[], 'np.ndarray'],
         array = (output.detach().float().cpu().numpy()
                  if HAS_TORCH and isinstance(output, torch.Tensor)
                  else np.asarray(output))
-        error = relative_error(array, expected)
+        if metric == 'normwise':
+            error = normwise_error(array, expected)
+            description = f'normwise relative error {error:.2e}'
+        else:
+            error = relative_error(array, expected)
+            description = f'max relative error {error:.2e}'
         status = PASS if error < tolerance else FAIL
-        return Result(name, status, f'max relative error {error:.2e}',
-                      elapsed)
+        return Result(name, status, description, elapsed)
     except Exception as error:              # noqa: BLE001 - reported
         return Result(name, FAIL, f'{type(error).__name__}: {error}')
 
