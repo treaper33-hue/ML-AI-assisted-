@@ -1,4 +1,4 @@
-# Part VI — Four Worked Projects
+# Part VI — Five Worked Projects
 
 Everything so far has been pieces. This part is five complete systems,
 each a single runnable file in `ml-mastery/projects/`, each going from raw
